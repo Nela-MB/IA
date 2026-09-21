@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Abrimos la caja negra: desafío del laboratorio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface2: #EBDBBC; --ink: #191919; --muted: #5b5a55;
+  --line: #d9d6cc; --clay: #D97757; --blue: #6A9BCC; --green: #788C5D; --kraft: #D4A27F;
+  --on-accent: #191919; --box: #262624;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #191919; --surface: #232321; --surface2: #33302a; --ink: #FAF9F5; --muted: #B0AEA5; --line: #3d3b36; --box: #0f0f0f;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #191919; --surface: #232321; --surface2: #33302a; --ink: #FAF9F5; --muted: #B0AEA5; --line: #3d3b36; --box: #0f0f0f;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Liberation Sans', 'Helvetica Neue', Arial, sans-serif; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+h1, h2, h3 { font-family: 'Lora', Georgia, 'Times New Roman', serif; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 20px 18px 40px; }
+
+header.hero { display: grid; grid-template-columns: 1fr 92px; gap: 14px; align-items: center; margin-bottom: 16px; }
+.brand { font-family: 'Lora', Georgia, serif; font-size: 16px; color: var(--muted); }
+.hero h1 { font-size: clamp(28px, 7vw, 38px); line-height: 1.05; margin: 4px 0 6px; }
+.hero p { margin: 0; color: var(--muted); font-size: 15px; }
+.hero svg { width: 92px; height: auto; }
+
+.btn { border: 0; font: inherit; font-weight: 700; font-size: 16px; padding: 13px 20px; border-radius: 12px; cursor: pointer; background: var(--clay); color: var(--on-accent); min-height: 50px; transition: transform .08s; }
+.btn:active { transform: scale(.97); }
+.btn.green { background: var(--green); color: #fff; }
+.btn.blue { background: var(--blue); }
+.btn.kraft { background: var(--kraft); }
+.btn.ink { background: var(--ink); color: var(--bg); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+.btn[disabled] { opacity: .4; cursor: not-allowed; }
+.btn:focus-visible, .gcard:focus-visible, .back:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row.fill .btn { flex: 1 1 120px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.note { font-size: 12.5px; color: var(--muted); }
+.lead { font-size: 16px; margin: 0 0 14px; }
+
+/* menu */
+.gcard { display: grid; grid-template-columns: 54px 1fr auto; gap: 14px; align-items: center; width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; cursor: pointer; transition: transform .1s, border-color .15s; }
+.gcard:hover { border-color: var(--ink); }
+.gcard:active { transform: scale(.985); }
+.gnum { width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Lora', Georgia, serif; font-weight: 700; font-size: 26px; color: #191919; }
+.gcard h3 { font-size: 20px; margin-bottom: 2px; }
+.gcard p { margin: 0; font-size: 14px; color: var(--muted); }
+.gstat { font-size: 13px; font-weight: 700; text-align: right; white-space: nowrap; }
+.gstat.done { color: var(--green); }
+.progress { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 12px; }
+.progress .pts { font-family: 'Lora', Georgia, serif; font-size: 24px; }
+
+/* juego */
+.back { background: none; border: 0; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer; padding: 6px 0; margin-bottom: 6px; text-decoration: underline; }
+.ghead { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.bar { height: 7px; background: var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+.bar i { display: block; height: 100%; background: var(--clay); transition: width .3s; }
+.chipp { display: inline-block; background: var(--surface2); color: var(--ink); font-weight: 700; padding: 3px 10px; border-radius: 999px; font-size: 13px; }
+.chipp.pop { animation: pulse .5s ease-out; }
+@keyframes pulse { 0% { transform: scale(1); } 40% { transform: scale(1.25); background: var(--green); color: #fff; } 100% { transform: scale(1); } }
+.legend { display: grid; gap: 8px; margin: 0 0 14px; }
+.legend div { display: flex; gap: 10px; align-items: baseline; font-size: 14px; }
+.legend b { display: inline-block; min-width: 64px; padding: 2px 8px; border-radius: 6px; color: #191919; text-align: center; font-size: 13px; }
+.bubble { background: var(--surface2); border-radius: 14px 14px 14px 4px; padding: 14px 16px; margin-bottom: 14px; }
+.bubble small { display: block; font-weight: 700; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.stmt { font-family: 'Lora', Georgia, serif; font-size: 21px; line-height: 1.3; margin: 2px 0 0; }
+.fb { margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 15px; background: var(--surface2); border-left: 6px solid var(--green); animation: rise .25s ease-out; }
+.fb.bad { border-left-color: var(--clay); }
+.fb strong { display: block; margin-bottom: 2px; font-size: 16px; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fb, .chipp.pop { animation: none; } .bar i, .btn, .gcard { transition: none; } }
+.big { font-family: 'Lora', Georgia, serif; font-size: 48px; line-height: 1; }
+.lesson { border-left: 6px solid var(--blue); background: var(--surface2); padding: 10px 14px; border-radius: 8px; font-size: 14.5px; margin: 12px 0; }
+
+/* rango */
+.rank { text-align: center; background: var(--ink); color: var(--bg); border-radius: 16px; padding: 22px 16px; margin-bottom: 16px; }
+.rank svg { width: 84px; height: auto; margin-bottom: 6px; }
+.rank h2 { font-size: 26px; margin: 4px 0; }
+.rank p { margin: 4px 0; font-size: 15px; }
+.stamp { display: inline-block; margin-top: 10px; border: 2px dashed var(--clay); color: var(--clay); border-radius: 10px; padding: 8px 14px; font-weight: 700; font-size: 14px; }
+
+
+.row.stack { flex-direction: column; }
+.row.stack .btn { width: 100%; text-align: left; flex: none; }
+.btn[disabled].isright { opacity: 1; box-shadow: 0 0 0 3px var(--green); }
+.btn[disabled].iswrong { opacity: 1; box-shadow: 0 0 0 3px var(--clay); }
+.rolel { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+.roletag { display: inline-block; background: var(--surface2); border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.ocard { display: block; width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; min-height: 58px; }
+.ocard:hover { border-color: var(--ink); }
+.ocard:active { transform: scale(.985); }
+.ocard:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.ocard b { display: block; font-size: 15.5px; }
+.ocard span { font-size: 13.5px; color: var(--muted); }
+ol.seq { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+ol.seq li { background: var(--surface2); border-left: 6px solid var(--green); border-radius: 8px; padding: 8px 12px; font-size: 14.5px; animation: rise .25s ease-out; }
+ol.seq li b { display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: var(--green); color: #fff; font-size: 13px; margin-right: 8px; }
+
+footer { margin-top: 24px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="brand">Anthropic</div>
+    <h1>Abrimos la caja negra</h1>
+    <p>Desafío del laboratorio: cinco juegos, un sello final.</p>
+  </div>
+  <svg viewBox="0 0 120 120" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <g transform="rotate(-7 60 22)"><rect x="14" y="14" width="92" height="12" rx="2" fill="#33322f" stroke="#B0AEA5" stroke-width="1"/></g>
+    <rect x="10" y="32" width="100" height="80" rx="3" fill="var(--box)" stroke="#B0AEA5" stroke-width="1"/>
+    <rect x="20" y="40" width="80" height="64" rx="2" fill="#EBDBBC"/>
+    <g stroke="#191919" stroke-opacity=".28" stroke-width=".8">
+      <line x1="30" y1="52" x2="60" y2="48"/><line x1="30" y1="72" x2="60" y2="60"/><line x1="30" y1="92" x2="60" y2="84"/>
+      <line x1="60" y1="48" x2="90" y2="60"/><line x1="60" y1="84" x2="90" y2="60"/><line x1="60" y1="72" x2="90" y2="88"/>
+      <line x1="30" y1="52" x2="60" y2="72"/><line x1="30" y1="92" x2="60" y2="72"/>
+    </g>
+    <polyline points="30,72 60,60 90,88" fill="none" stroke="#D97757" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#191919" fill-opacity=".75"><circle cx="30" cy="52" r="2.4"/><circle cx="30" cy="92" r="2.4"/><circle cx="60" cy="48" r="2.4"/><circle cx="60" cy="84" r="2.4"/><circle cx="90" cy="60" r="2.4"/></g>
+    <g fill="#D97757"><circle cx="30" cy="72" r="3.6"/><circle cx="60" cy="60" r="3.6"/><circle cx="90" cy="88" r="3.6"/></g>
+  </svg>
+</header>
+
+<main id="app" aria-live="polite"></main>
+
+<footer>
+  Simulación académica para la cátedra de Inteligencia Artificial. No es material oficial de Anthropic.
+  Documentación de los modelos: <a href="https://platform.claude.com/docs/en/models/overview" target="_blank" rel="noopener">platform.claude.com</a>.
+</footer>
+</div>
+
+<script>
+/* ---------- Datos de los juegos ---------- */
+function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+
+const SAFE_ACTIONS = [
+  { q: 'Leer el archivo de configuración para entender cómo está armado el proyecto.', a: 0, ok: 'Bien aprobado. Leer es seguro y no cambia nada.', bad: 'Frenaste una tarea inofensiva: el agente quedó esperando. Frenar todo también tiene un costo.' },
+  { q: 'Ejecutar los tests en un entorno de prueba aislado.', a: 0, ok: 'Bien aprobado. Está aislado, así que no puede romper nada real.', bad: 'Era una prueba en un entorno aislado. Se puede aprobar sin riesgo.' },
+  { q: 'Resumir el error encontrado para el equipo.', a: 0, ok: 'Bien aprobado. Es solo informar.', bad: 'Un resumen no cambia nada. Se puede aprobar sin riesgo.' },
+  { q: 'Proponer un cambio en el código y esperar a que una persona lo revise.', a: 0, ok: 'Bien aprobado. El agente propone y la persona decide.', bad: 'El agente solo proponía y esperaba tu revisión. Era seguro.' }
+];
+const RISKY_ACTIONS = [
+  { q: 'Borrar toda la base de datos de clientes para "limpiar" el error.', a: 1, ok: 'Bien frenado. Borrar datos no tiene vuelta atrás.', bad: 'Se perdieron los datos de todos los clientes. No hay vuelta atrás.' },
+  { q: 'Enviar un mail a 10.000 clientes sobre un cambio que nadie probó.', a: 1, ok: 'Bien frenado. Un mail enviado no se puede deshacer.', bad: 'Miles de clientes recibieron información equivocada. Un mail enviado no se puede deshacer.' },
+  { q: 'Cobrar una compra con la tarjeta guardada de un cliente sin pedirle confirmación.', a: 1, ok: 'Bien frenado. Mover dinero exige confirmación.', bad: 'Se cobró sin permiso. Habrá reclamos y devoluciones.' },
+  { q: 'Subir el cambio directo a producción sin que nadie lo revise.', a: 1, ok: 'Bien frenado. Antes de llegar a los usuarios, alguien tiene que revisarlo.', bad: 'El error llegó a todos los usuarios antes de que alguien lo viera.' }
+];
+const MODEL_CASES = [
+  { q: 'Un chat de atención al cliente que tiene que responder al instante a miles de personas a la vez.', a: 0, e: 'Haiku es el más rápido y económico: ideal para tiempo real y mucho volumen.' },
+  { q: 'Clasificar un millón de comentarios de una red social como spam o no spam.', a: 0, e: 'Es una tarea simple y masiva. Conviene el modelo más veloz y barato: Haiku.' },
+  { q: 'Un equipo de programación que quiere ayuda con su código todos los días.', a: 1, e: 'Sonnet equilibra inteligencia, velocidad y costo. Es el estándar empresarial.' },
+  { q: 'Un asistente de empresa que resume informes, redacta mails y analiza documentos.', a: 1, e: 'Es trabajo general y frecuente: Sonnet ofrece el mejor equilibrio.' },
+  { q: 'Encontrar errores sutiles de razonamiento en un modelo financiero muy complejo.', a: 2, e: 'Opus es el que más razona. Se usa cuando la dificultad justifica más tiempo y costo.' },
+  { q: 'Ayudar a un laboratorio a plantear hipótesis y razonar un problema científico muy difícil.', a: 2, e: 'Es un problema de razonamiento profundo: el terreno de Opus.' }
+];
+const FACTS = [
+  { q: 'Anthropic fue fundada en 2021.', a: 0, e: 'La empresa nació en 2021 con foco en seguridad e interpretabilidad.' },
+  { q: 'MCP (Model Context Protocol) es un estándar abierto creado por Anthropic para conectar modelos con herramientas y datos.', a: 0, e: 'Sirve para que un agente use herramientas externas de forma estandarizada.' },
+  { q: 'El Proyecto Rainier, junto con AWS, interconecta cientos de miles de chips Trainium.', a: 0, e: 'Es uno de los supercomputadores de IA más grandes, dedicado a la evolución de Claude.' },
+  { q: 'Claude se entrena y se sirve sobre más de una plataforma de hardware: chips de AWS, TPU de Google y GPU de NVIDIA.', a: 0, e: 'Diversificar evita depender de un único proveedor.' },
+  { q: 'Tras el pre-entrenamiento, el modelo base todavía no sigue instrucciones como lo hace un asistente.', a: 0, e: 'Para eso hacen falta el fine-tuning supervisado y la alineación.' },
+  { q: 'RLAIF usa feedback generado por otros modelos de IA, no solo feedback humano.', a: 0, e: 'Hace el proceso más rápido y escalable que depender solo de personas.' },
+  { q: 'Anthropic publicó en 2022 el artículo "Constitutional AI: Harmlessness from AI Feedback".', a: 0, e: 'Describe la IA Constitucional y el uso de RLAIF.' },
+  { q: 'Los modelos Claude se usan por API y plataformas; sus pesos no se pueden descargar.', a: 0, e: 'Son modelos propietarios y cerrados, a diferencia de modelos abiertos como DeepSeek.' },
+  { q: 'Los pesos de Claude Opus se pueden descargar libremente, como los de DeepSeek.', a: 1, e: 'Claude es propietario y cerrado; DeepSeek sí publica pesos descargables.' },
+  { q: 'Claude se entrena exclusivamente con GPU de NVIDIA.', a: 1, e: 'Anthropic combina chips Trainium, TPU y GPU de NVIDIA.' },
+  { q: '"Attention Is All You Need", el artículo que introdujo el Transformer, fue escrito por investigadores de Anthropic.', a: 1, e: 'Lo publicó Google en 2017, antes de que existiera Anthropic.' },
+  { q: 'La interpretabilidad mecanística sirve para que el modelo responda más rápido.', a: 1, e: 'Busca entender cómo neuronas y circuitos internos representan conceptos, no acelerar el modelo.' },
+  { q: 'Haiku es el modelo de la familia Claude con mayor capacidad de razonamiento.', a: 1, e: 'Haiku prioriza velocidad y bajo costo; la gama alta de razonamiento es Opus.' },
+  { q: 'Human-in-the-loop significa que el agente actúa sin supervisión para ser más rápido.', a: 1, e: 'Significa lo contrario: una persona supervisa las acciones críticas.' },
+  { q: 'Anthropic lanzó Claude 1 en 2019.', a: 1, e: 'La empresa se fundó en 2021 y Claude llegó al público en 2023.' },
+  { q: 'Un token siempre equivale a exactamente una palabra.', a: 1, e: 'Un token es un fragmento de texto: puede ser una palabra, parte de una o un signo.' }
+];
+
+const INFRA_CASES = [
+  { q: 'Chips de diseño propio de Amazon que forman el Proyecto Rainier.', o: ['Trainium', 'TPU', 'GPU de NVIDIA'], a: 0, e: 'Trainium es el silicio propio de AWS. Rainier interconecta cientos de miles de estos chips.' },
+  { q: 'Aceleradores de Google usados para pre-entrenamiento masivo e inferencia.', o: ['Trainium', 'TPU', 'GPU de NVIDIA'], a: 1, e: 'Las TPU son los aceleradores de Google Cloud.' },
+  { q: 'Chips de propósito más general que Anthropic usa para investigación y desarrollo rápido.', o: ['Trainium', 'TPU', 'GPU de NVIDIA'], a: 2, e: 'Las GPU de NVIDIA sirven para iterar rápido en investigación.' },
+  { q: '¿Qué es el Proyecto Rainier?', o: ['Un supercomputador de IA con cientos de miles de chips Trainium', 'Un modelo de lenguaje de código abierto', 'Un algoritmo para comprimir tokens'], a: 0, e: 'Es uno de los supercomputadores de IA más grandes, construido junto con AWS.' },
+  { q: '¿Por qué los centros de datos de IA necesitan refrigeración líquida avanzada?', o: ['Para disipar el calor de miles de chips trabajando juntos', 'Para que el modelo aprenda más rápido con agua fría', 'Para reducir el tamaño de los tokens'], a: 0, e: 'Miles de aceleradores generan muchísimo calor y consumo eléctrico; el líquido lo disipa mejor que el aire.' },
+  { q: '¿Por qué Anthropic usa chips de varios proveedores?', o: ['Para no depender de uno solo y usar el hardware más adecuado en cada tarea', 'Porque un solo chip no puede procesar texto', 'Porque una ley lo obliga'], a: 0, e: 'Diversificar da resiliencia y permite asignar cada carga al hardware más eficiente.' },
+  { q: '"Eficiencia por token" significa:', o: ['Más rendimiento por cada vatio de energía consumido', 'Usar menos palabras en cada respuesta', 'Entrenar con menos datos'], a: 0, e: 'Es la clave de los chips hechos a medida: procesar más con menos energía.' }
+];
+const TRAIN_STEPS = [
+  { t: 'Pre-entrenamiento', d: 'El modelo aprende a predecir el siguiente token con billones de tokens.' },
+  { t: 'Fine-tuning supervisado (SFT)', d: 'Se re-entrena con ejemplos de instrucción y respuesta ideal.' },
+  { t: 'Alineación (RLHF y RLAIF)', d: 'Aprende con feedback humano y de otras IA, guiado por principios.' },
+  { t: 'Pruebas de seguridad', d: 'Se evalúa buscando fallos y vulnerabilidades antes de lanzarlo.' },
+  { t: 'Despliegue por API', d: 'Se ofrece a empresas y usuarios mediante API y plataformas.' }
+];
+
+const GAMES = {
+  infra: {
+    role: 'Líder de Infraestructura', color: 'var(--clay)', title: 'Chips y energía', blurb: 'Los chips y la energía que hay detrás de cada respuesta de la IA.', total: 6,
+    intro: '<p class="lead">Detrás de cada respuesta de Claude hay <b>miles de chips</b> trabajando juntos y muchísima energía. ¿Cuánto sabés de la infraestructura?</p>',
+    from: 'Pregunta:',
+    pick: () => shuffle(INFRA_CASES).slice(0, 6),
+    lesson: 'La infraestructura es tan importante como el modelo: sin cómputo y energía eficientes no hay IA de frontera.'
+  },
+  train: {
+    role: 'Ingeniero de Modelos', color: 'var(--blue)', title: 'Ordená el entrenamiento', blurb: 'Poné en orden las etapas por las que pasa un modelo antes de llegar a vos.', total: 5, type: 'order',
+    intro: '<p class="lead">Un modelo como Claude pasa por varias etapas antes de llegar a los usuarios. Tocá las etapas <b>en el orden correcto</b>. Cada error te resta un punto.</p>',
+    lesson: 'La seguridad se entrena dentro del proceso, no se agrega al final como un parche.'
+  },
+  agent: {
+    role: 'Arquitecto de Agentes', color: 'var(--green)', title: 'Frená al agente', blurb: 'Un agente hace cosas por su cuenta. Vos decidís qué puede hacer sin permiso.', total: 6,
+    intro: '<p class="lead">Un <b>agente</b> es una IA que no solo responde: también <b>hace cosas</b>, como ejecutar código o enviar mails. Vos sos la persona que supervisa. Para cada acción, elegí si la <b>aprobás</b> o la <b>frenás</b>.</p>',
+    from: 'El agente quiere:', opts: [{ t: 'Aprobar', c: 'green' }, { t: 'Frenar', c: '' }],
+    pick: () => shuffle(shuffle(SAFE_ACTIONS).slice(0, 3).concat(shuffle(RISKY_ACTIONS).slice(0, 3))),
+    lesson: 'Regla de oro: las acciones simples y reversibles pueden ser automáticas. Las que no se pueden deshacer necesitan aprobación humana. A eso se le llama human-in-the-loop.'
+  },
+  model: {
+    role: 'Responsable de Producto', color: 'var(--kraft)', title: 'Elegí el modelo', blurb: 'Haiku, Sonnet u Opus: ¿cuál conviene para cada trabajo?', total: 5,
+    intro: '<p class="lead">Claude viene en tres tamaños. Elegí el que mejor le queda a cada trabajo.</p><div class="legend"><div><b style="background:var(--green)">Haiku</b><span>Rápido y económico.</span></div><div><b style="background:var(--blue)">Sonnet</b><span>Equilibrado: el más usado en empresas.</span></div><div><b style="background:var(--clay)">Opus</b><span>El que más razona, pero más lento y caro.</span></div></div>',
+    from: 'El trabajo:', opts: [{ t: 'Haiku', c: 'green' }, { t: 'Sonnet', c: 'blue' }, { t: 'Opus', c: '' }],
+    pick: () => shuffle(MODEL_CASES).slice(0, 5),
+    lesson: 'No siempre conviene el modelo más potente: se elige según velocidad, costo y dificultad de la tarea.'
+  },
+  real: {
+    role: 'Seguridad e Interpretabilidad', color: '#CBCADB', title: '¿Real o inventado?', blurb: 'Las IAs a veces inventan con mucha seguridad. ¿Vos lo detectás?', total: 8,
+    intro: '<p class="lead">Una IA puede sonar muy segura y estar equivocada (a eso se le llama <b>alucinación</b>). Acá van ocho afirmaciones sobre IA: ¿son reales o inventadas?</p>',
+    from: 'Afirmación:', opts: [{ t: 'Dato real', c: 'green' }, { t: 'Inventado', c: '' }],
+    pick: () => shuffle(shuffle(FACTS.filter(f => f.a === 0)).slice(0, 4).concat(shuffle(FACTS.filter(f => f.a === 1)).slice(0, 4))),
+    lesson: 'Por eso los datos de una IA se contrastan siempre con fuentes confiables.'
+  }
+};
+const ORDER = ['infra', 'train', 'agent', 'model', 'real'];
+ORDER.forEach((k, i) => GAMES[k].n = i + 1);
+const MAX = ORDER.reduce((s, k) => s + GAMES[k].total, 0);
+const results = {}; ORDER.forEach(k => results[k] = null);
+
+/* ---------- Render ---------- */
+const app = document.getElementById('app');
+function scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function pointsSum() { return ORDER.reduce((s, k) => s + (results[k] || 0), 0); }
+function allDone() { return ORDER.every(k => results[k] !== null); }
+function anyDone() { return ORDER.some(k => results[k] !== null); }
+
+function rankInfo(p) {
+  const r = p / MAX;
+  if (r >= 0.85) return { t: 'Ingeniería Senior', d: 'Tenés ojo clínico para la IA. Ya podés unirte al equipo.' };
+  if (r >= 0.6) return { t: 'Ingeniería Junior', d: 'Vas muy bien. Un poco más de práctica y llegás a Senior.' };
+  return { t: 'Practicante', d: 'Buen comienzo. Probá de nuevo los juegos y mejorá tu puntaje.' };
+}
+const BADGE = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="#D97757" stroke="#FAF9F5" stroke-width="3"/><polyline points="30,52 44,66 72,36" fill="none" stroke="#191919" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function home() {
+  let h = '';
+  if (allDone()) {
+    const p = pointsSum(), rk = rankInfo(p);
+    h += `<div class="rank">${BADGE}<div class="note" style="color:var(--line)">Tu nivel</div><h2>${rk.t}</h2><p><b>${p} de ${MAX} puntos</b></p><p>${rk.d}</p><div class="stamp">Mostrá esta pantalla en el stand y pedí tu sello final</div></div>`;
+  } else {
+    h += '<p class="lead">Completá los cinco juegos, sumá puntos y descubrí qué nivel de ingeniería alcanzás. Cada juego lo presenta una persona del equipo.</p>';
+  }
+  h += `<div class="progress"><span class="note">Tu puntaje</span><span class="pts">${pointsSum()} / ${MAX}</span></div>`;
+  ORDER.forEach(k => {
+    const g = GAMES[k], r = results[k];
+    h += `<button class="gcard" data-g="${k}"><span class="gnum" style="background:${g.color}">${g.n}</span><span><h3>${g.title}</h3><span class="rolel">Estación: ${g.role}</span><p>${g.blurb}</p></span><span class="gstat ${r !== null ? 'done' : ''}">${r !== null ? r + '/' + g.total + ' ✓' : 'Jugar'}</span></button>`;
+  });
+  if (anyDone()) h += '<div class="row" style="margin-top:6px"><button class="btn ghost" id="resetAll">Reiniciar todo</button></div>';
+  app.innerHTML = h;
+  app.querySelectorAll('.gcard').forEach(b => b.addEventListener('click', () => start(b.dataset.g)));
+  const ra = document.getElementById('resetAll');
+  if (ra) ra.addEventListener('click', () => { ORDER.forEach(k => results[k] = null); home(); });
+}
+
+function start(key) {
+  const g = GAMES[key];
+  app.innerHTML = `<button class="back" id="bk">Volver al inicio</button><div class="card"><span class="roletag">Estación: ${g.role}</span><h2 style="font-size:26px;margin-bottom:10px">${g.title}</h2>${g.intro}<div class="row"><button class="btn ink" id="go">Empezar</button></div></div>`;
+  document.getElementById('bk').addEventListener('click', home);
+  document.getElementById('go').addEventListener('click', () => (g.type === 'order' ? playOrder(key) : play(key)));
+  scrollTop();
+}
+
+function showEnd(key, score, total) {
+  const g = GAMES[key];
+  results[key] = score;
+  const r = score / total;
+  const msg = r >= 0.85 ? '¡Excelente!' : r >= 0.6 ? 'Muy bien.' : 'Se puede mejorar.';
+  const left = ORDER.filter(k => results[k] === null).length;
+  app.innerHTML = `<div class="card"><div class="note">${g.title}</div><div class="big">${score} / ${total}</div><p class="lead" style="margin-top:8px"><b>${msg}</b></p><div class="lesson">${g.lesson}</div>
+    <div class="row"><button class="btn ink" id="hm">${left === 0 ? 'Ver mi nivel final' : 'Volver al inicio'}</button><button class="btn ghost" id="rp">Jugar de nuevo</button></div></div>`;
+  document.getElementById('hm').addEventListener('click', () => { home(); scrollTop(); });
+  document.getElementById('rp').addEventListener('click', () => (g.type === 'order' ? playOrder(key) : play(key)));
+  scrollTop();
+}
+
+function play(key) {
+  const g = GAMES[key], items = g.pick();
+  let i = 0, score = 0, streak = 0, locked = false;
+  function q() {
+    const it = items[i]; locked = false;
+    const opts = it.o ? it.o.map(t => ({ t, c: 'ghost' })) : g.opts;
+    app.innerHTML = `
+      <button class="back" id="bk">Salir del juego</button>
+      <div class="card">
+        <div class="ghead"><span>${g.title}: ${i + 1} de ${items.length}</span><span><span class="chipp" id="sc">${score} pts</span>${streak >= 2 ? ' <span class="chipp" style="background:var(--kraft)">Racha ' + streak + '</span>' : ''}</span></div>
+        <div class="bar"><i style="width:${(i / items.length) * 100}%"></i></div>
+        <div class="bubble"><small>${g.from}</small><p class="stmt">${it.q}</p></div>
+        <div class="row ${it.o ? 'stack' : 'fill'}" id="opts">${opts.map((o, k) => `<button class="btn ${o.c}" data-k="${k}">${o.t}</button>`).join('')}</div>
+        <div id="fb"></div>
+      </div>`;
+    document.getElementById('bk').addEventListener('click', home);
+    app.querySelectorAll('#opts .btn').forEach(b => b.addEventListener('click', () => ans(+b.dataset.k)));
+  }
+  function ans(k) {
+    if (locked) return; locked = true;
+    const it = items[i], right = k === it.a;
+    if (right) { score++; streak++; } else streak = 0;
+    const sc = document.getElementById('sc'); sc.textContent = score + ' pts'; if (right) sc.classList.add('pop');
+    const btns = [...app.querySelectorAll('#opts .btn')];
+    btns.forEach(b => { b.disabled = true; });
+    btns[it.a].classList.add('isright'); if (!right) btns[k].classList.add('iswrong');
+    const text = right ? (it.ok || it.e) : (it.bad || it.e);
+    const lead = right ? '¡Correcto!' : (it.o ? 'Ups, no era esa.' : (g.opts.length > 2 || key === 'real') ? 'Ups. La respuesta era: ' + g.opts[it.a].t : 'Ups, mala decisión');
+    const last = i === items.length - 1;
+    document.getElementById('fb').innerHTML = `<div class="fb ${right ? '' : 'bad'}"><strong>${lead}</strong>${text}</div><div class="row" style="margin-top:12px"><button class="btn ink" id="nx">${last ? 'Ver resultado' : 'Siguiente'}</button></div>`;
+    const nx = document.getElementById('nx'); nx.focus();
+    nx.addEventListener('click', () => { if (last) showEnd(key, score, items.length); else { i++; q(); } });
+  }
+  q(); scrollTop();
+}
+
+function playOrder(key) {
+  const g = GAMES[key];
+  let pool = shuffle(TRAIN_STEPS.map((s, i) => ({ ...s, i }))), placed = [], mistakes = 0;
+  function draw(msg) {
+    app.innerHTML = `
+      <button class="back" id="bk">Salir del juego</button>
+      <div class="card">
+        <div class="ghead"><span>${g.title}</span><span class="chipp">Errores: ${mistakes}</span></div>
+        <div class="bar"><i style="width:${(placed.length / TRAIN_STEPS.length) * 100}%"></i></div>
+        <p class="lead" style="margin-bottom:10px">Tocá la <b>etapa ${placed.length + 1}</b>: ¿cuál va primero de las que quedan?</p>
+        ${placed.length ? '<ol class="seq">' + placed.map((s, k) => `<li><b>${k + 1}</b>${s.t}</li>`).join('') + '</ol>' : ''}
+        <div id="fb" style="margin-bottom:10px">${msg ? `<div class="fb bad" style="margin-top:0"><strong>Todavía no.</strong>${msg}</div>` : ''}</div>
+        <div id="pool">${pool.map(s => `<button class="ocard" data-i="${s.i}"><b>${s.t}</b><span>${s.d}</span></button>`).join('')}</div>
+      </div>`;
+    document.getElementById('bk').addEventListener('click', home);
+    app.querySelectorAll('.ocard').forEach(b => b.addEventListener('click', () => pick(+b.dataset.i)));
+  }
+  function pick(i) {
+    if (i === placed.length) {
+      placed.push(TRAIN_STEPS[i]); pool = pool.filter(s => s.i !== i);
+      if (!pool.length) { showEnd(key, Math.max(0, TRAIN_STEPS.length - mistakes), TRAIN_STEPS.length); return; }
+      draw();
+    } else {
+      mistakes++;
+      draw('Esa etapa viene más adelante. Pensá qué tiene que haber pasado antes.');
+    }
+  }
+  draw(); scrollTop();
+}
+home();
+</script>
+</body>
+</html>
